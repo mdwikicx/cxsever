@@ -2,3 +2,5 @@
 /www/new_js
 *.html
 /www/js/js-node_modules
+!/www/js/node_modules/.gitkeep
+/www/js/node_modules/**
