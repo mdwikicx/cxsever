@@ -1,3 +1,4 @@
 
 /www/new_js
 *.html
+/www/js/js-node_modules
