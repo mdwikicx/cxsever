@@ -37,14 +37,14 @@ async function fix_it_api(text) {
 function do_seconds(start_time, id) {
     const time = new Date().getSeconds() - start_time;
 
-    $(id).text( "in " + time + " Seconds");
+    $(id).text("in " + time + " Seconds");
 }
 
 function get_text(ty) {
     var start_time = new Date().getSeconds();
     $("#load_" + ty).show();
 
-    var title = $("#title_"+ty).val();
+    var title = $("#title_" + ty).val();
     (async () => {
         const oldtext = await get_text_api_new(title, ty);
         $("#old_" + ty).val(oldtext);
