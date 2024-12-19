@@ -1,9 +1,11 @@
 
 /www/new_js
-*.html
 /www/js/js-node_modules
 !/www/js/node_modules/.gitkeep
 /www/js/node_modules
 /www/JS_NCC2C
 www/js.zip
 www/js/lib/d/u1.js
+www/js/pos/Hirayama_disease.html
+www/js/pos/test.html
+www/js/nofix.html
