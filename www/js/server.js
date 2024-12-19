@@ -62,7 +62,7 @@ app.get("/PageHtmlDomain/:domain/:title", function (req, res) {
 	);
 });
 
-app.post("/textp", (req, res) => {
+app.post(["/HtmltoSegments", "/textp"], (req, res) => {
 	const sourceHtml = req.body.html;
 
 	if (!sourceHtml || sourceHtml.trim().length === 0) {

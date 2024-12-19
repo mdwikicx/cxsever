@@ -20,7 +20,7 @@ async function fix_it_api(text) {
         body: JSON.stringify({ html: text }),
         // dispatcher: new Agent({ connect: { timeout: 60_000 } })
     };
-    const response = await fetch('/textp', options);
+    const response = await fetch('/HtmltoSegments', options);
     if (!response.ok) {
         console.error(response.statusText);
         return "";
