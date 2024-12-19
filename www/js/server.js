@@ -91,12 +91,6 @@ app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/pos/index.html');
 });
 
-
-app.get('/f', (req, res) => {
-
-	res.sendFile(__dirname + '/pos/fixed.html');
-});
-
 app.get('/js.js', (req, res) => {
 	res.sendFile(__dirname + '/pos/js.js');
 });
