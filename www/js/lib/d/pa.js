@@ -1,24 +1,5 @@
 'use strict';
 
-// const { Agent } = require('undici');
-
-// function get_html_text(sourceTitle) {
-
-// 	// const title = sourceTitle.replace(/ /g, "_")
-
-// 	const url = "https://medwiki.toolforge.org/get_html/rest_v1_page.php?title=" + sourceTitle
-// 	const options = {
-// 		method: 'GET',
-// 		// dispatcher: new Agent({ connect: { timeout: 60_000 } })
-// 	};
-
-// 	const response = fetch(url, options);
-
-// 	const text = response.text();
-
-// 	return text;
-// };
-
 function get_text_api_wmcloud(title, callback) {
 	var url = 'https://medwiki.toolforge.org/get_html/rest_v1_page.php?wmcloud=1&title=' + title
 
@@ -46,7 +27,6 @@ function get_text_api_new(title, callback) {
 }
 
 module.exports = {
-	// get_html_text,
 	get_text_api_new,
 	get_text_api_wmcloud
 };
