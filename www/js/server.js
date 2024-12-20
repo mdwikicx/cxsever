@@ -14,9 +14,9 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: false }));
 
 app.get("/page/:title", function (req, res) {
-
 	const title = req.params.title;
-	pa.get_text_api_new(title, function (text) {
+
+	pa.get_text_new(title, 'mdwiki.org', function (text) {
 		const result = u.tet(text);
 		res.send({
 			title: title,
@@ -28,7 +28,7 @@ app.get("/page/:title", function (req, res) {
 app.get("/textwmcloud/:title", function (req, res) {
 	const title = req.params.title;
 
-	pa.get_text_api_wmcloud(title, function (text) {
+	pa.get_text_new(title, 'mdwiki.wmcloud.org', function (text) {
 		res.send({
 			title: title,
 			result: text
@@ -40,7 +40,7 @@ app.get("/textwmcloud/:title", function (req, res) {
 app.get("/pagetext/:title", function (req, res) {
 	const title = req.params.title;
 
-	pa.get_text_api_new(title, function (text) {
+	pa.get_text_new(title, 'mdwiki.org', function (text) {
 		res.send({
 			title: title,
 			result: text
@@ -49,7 +49,20 @@ app.get("/pagetext/:title", function (req, res) {
 	);
 });
 
-app.post("/textp", (req, res) => {
+app.get("/PageHtmlDomain/:domain/:title", function (req, res) {
+	const title = req.params.title;
+	const domain = req.params.domain;
+
+	pa.get_text_new(title, domain, function (text) {
+		res.send({
+			title: title,
+			result: text
+		});
+	}
+	);
+});
+
+app.post(["/HtmltoSegments", "/textp"], (req, res) => {
 	const sourceHtml = req.body.html;
 
 	if (!sourceHtml || sourceHtml.trim().length === 0) {
@@ -76,12 +89,6 @@ app.post("/textp", (req, res) => {
 app.get('/', (req, res) => {
 
 	res.sendFile(__dirname + '/pos/index.html');
-});
-
-
-app.get('/f', (req, res) => {
-
-	res.sendFile(__dirname + '/pos/fixed.html');
 });
 
 app.get('/js.js', (req, res) => {
