@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<HTML lang=en dir=ltr data-bs-theme="light" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="robots" content="noindex">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#111111" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#eeeeee" media="(prefers-color-scheme: dark)" />
+    <title>html then fix</title>
+    <link href='https://tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css' rel='stylesheet'
+        type='text/css'>
+    <script src='https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery/3.7.1/jquery.min.js'></script>
+    <script src='https://tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js'></script>
+    <script src='/js.js'></script>
+</head>
+
+<body>
+    <header class="mb-3 border-bottom">
+        <nav id="mainnav" class="navbar navbar-expand-lg shadow">
+            <div class="container-fluid" id="navbardiv">
+                <a class="navbar-brand mb-0 h1" href="/t" style="color:#0d6efd;">
+                    T
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapsibleNavbar" aria-controls="collapsibleNavbar" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="collapsibleNavbar">
+                    <ul class="navbar-nav flex-row flex-wrap bd-navbar-nav">
+                        <li class="nav-item col-4 col-lg-auto">
+                            <a class="nav-link py-2 px-0 px-lg-2" href="https://github.com/MrIbrahem/mdwikicx/tree/main/cxsever" target="_blank">
+                                <span class="navtitles">GitHub</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main id="body">
+        <div id="maindiv" class="container">
+            <div class="card">
+                <div class="card-header aligncenter">
+                    /textwmcloud/:title (get) <span id="time_textwmcloud"></span>
+                </div>
+                <div class="card-body">
+                    <div class='row'>
+                        <div class='col-md-10'>
+                            <div class='input-group mb-3'>
+                                <div class='input-group-prepend'>
+                                    <span class='input-group-text'>Title</span>
+                                </div>
+                                <input class='form-control' type='text' id='title_textwmcloud' name='title_textwmcloud'
+                                    value="COVID-19" />
+                            </div>
+                        </div>
+                        <div class='col-md-2'>
+                            <input class='btn btn-outline-primary' size='10' name='start' value='start'
+                                onclick="javascript:get_text('textwmcloud');" />
+                            <span id="load_textwmcloud" class="spinner-border spinner-border-sm" role="status"
+                                aria-hidden="true" style="display:none;"></span>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-md-12'>
+                            <div class='input-group mb-3'>
+                                <textarea class='form-control' type='text' id='old_textwmcloud' name='old_textwmcloud' rows='4'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header aligncenter">
+                    /pagetext/:title (get) <span id="time_pagetext"></span>
+                </div>
+                <div class="card-body">
+                    <div class='row'>
+                        <div class='col-md-10'>
+                            <div class='input-group mb-3'>
+                                <div class='input-group-prepend'>
+                                    <span class='input-group-text'>Title</span>
+                                </div>
+                                <input class='form-control' type='text' id='title_pagetext' name='title_pagetext'
+                                    value="COVID-19" />
+                            </div>
+                        </div>
+                        <div class='col-md-2'>
+                            <input class='btn btn-outline-primary' size='10' name='start' value='start'
+                                onclick="javascript:get_text('pagetext');" />
+                            <span id="load_pagetext" class="spinner-border spinner-border-sm" role="status"
+                                aria-hidden="true" style="display:none;"></span>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-md-12'>
+                            <div class='input-group mb-3'>
+                                <textarea class='form-control' type='text' id='old_pagetext' name='old_pagetext' rows='4'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header aligncenter">
+                    /textp (post) <span id="time_fixit"></span>
+                </div>
+                <div class="card-body">
+                    <div class='row'>
+                        <div class='col-md-10'>
+                            <input class='btn btn-outline-primary' size='10' name='start' value='fix it'
+                                onclick="javascript:fix_it();" />
+                            <span id="load_fixit" class="spinner-border spinner-border-sm" role="status"
+                                aria-hidden="true" style="display:none;"></span>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-md-12'>
+                            <div class='input-group mb-3'>
+                                <textarea class='form-control' type='text' id='new' name='new' rows='4'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header aligncenter">
+                    /page/:title (get) <span id="time_Fixed"></span>
+                </div>
+                <div class="card-body">
+                    <div class='row'>
+                        <div class='col-md-10'>
+                            <div class='input-group mb-3'>
+                                <div class='input-group-prepend'>
+                                    <span class='input-group-text'>Title</span>
+                                </div>
+                                <input class='form-control' type='text' id='title' name='title'
+                                    value="COVID-19" />
+                            </div>
+                        </div>
+                        <div class='col-md-2'>
+                            <input class='btn btn-outline-primary' size='10' name='start' value='start'
+                                onclick="javascript:get_Fixed();" />
+                            <span id="load_Fixed" class="spinner-border spinner-border-sm" role="status"
+                                aria-hidden="true" style="display:none;"></span>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-md-12'>
+                            <div class='input-group mb-3'>
+                                <textarea class='form-control' type='text' id='fixed_text' name='fixed_text' rows='4'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
