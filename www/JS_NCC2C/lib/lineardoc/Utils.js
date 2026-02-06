@@ -65,6 +65,7 @@ function getOpenTagHtml( tag ) {
 	for ( const attr in tag.attributes ) {
 		attributes.push( attr );
 	}
+	// by ibrahem qasim
 	// attributes.sort();
 	for ( let i = 0, len = attributes.length; i < len; i++ ) {
 		const attr = attributes[ i ];
@@ -281,6 +282,7 @@ function getChunkBoundaryGroups( boundaries, chunks, getLength ) {
 
 	// Get boundaries in order, disregarding the start of the first chunk
 	boundaries = boundaries.slice();
+	// by ibrahem qasim
 	// boundaries.sort( ( a, b ) => a - b );
 	while ( boundaries[ boundaryPtr ] === 0 ) {
 		boundaryPtr++;
@@ -375,6 +377,12 @@ function setLinkIdsInPlace( textChunks, getNextId ) {
 			) {
 				// Hack: copy href, then remove it, then re-add it, so that
 				// attributes appear in alphabetical order (ugh)
+				/*
+				const href = tag.attributes.href;
+				delete tag.attributes.href;
+				tag.attributes.class = [ tag.attributes.class, 'cx-link' ].join( ' ' ).trim();
+				*/
+				// by ibrahem qasim
 				var href = tag.attributes.href;
 				// split href before ?
 				if ( href.indexOf( '?' ) !== -1 ) {
@@ -384,7 +392,6 @@ function setLinkIdsInPlace( textChunks, getNextId ) {
 				delete tag.attributes.typeof;
 				delete tag.attributes.href;
 				delete tag.attributes[ 'data-mw-i18n' ];
-				// tag.attributes.class = [ tag.attributes.class, 'cx-link' ].join( ' ' ).trim();
 				tag.attributes.class = "cx-link";
 
 				tag.attributes[ 'data-linkid' ] = getNextId( 'link' );
