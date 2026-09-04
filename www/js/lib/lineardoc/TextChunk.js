@@ -12,7 +12,6 @@
  * reference span). The tags and/or reference apply to the whole text;
  * therefore text with varying markup must be split into multiple chunks.
  *
- * @class
  */
 class TextChunk {
 	/**
@@ -20,7 +19,7 @@ class TextChunk {
 	 * @param {Object[]} tags array of SAX open tag objects, for the applicable tags
 	 * @param {Doc|Object} [inlineContent] tag or sub-doc
 	 */
-	constructor( text, tags, inlineContent ) {
+	constructor(text, tags, inlineContent) {
 		this.text = text;
 		this.tags = tags;
 		this.inlineContent = inlineContent;

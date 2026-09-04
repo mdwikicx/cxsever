@@ -7,7 +7,7 @@ class Contextualizer {
 	/**
 	 * @param {Object} config
 	 */
-	constructor( config ) {
+	constructor(config) {
 		this.contexts = [];
 		this.config = config || {};
 	}
@@ -20,14 +20,14 @@ class Contextualizer {
 	 * @param {Object} openTag.attributes HTML attributes as a string map
 	 * @return {string|undefined} The new context
 	 */
-	getChildContext( openTag ) {
+	getChildContext(openTag) {
 		// Change to 'media' context inside figure
-		if ( openTag.name === 'figure' ) {
+		if (openTag.name === 'figure') {
 			return 'media';
 		}
 
 		// Exception: return to undefined context inside figure//figcaption
-		if ( openTag.name === 'figcaption' ) {
+		if (openTag.name === 'figcaption') {
 			return undefined;
 		}
 
@@ -41,7 +41,7 @@ class Contextualizer {
 	 * @return {string|undefined} The current context
 	 */
 	getContext() {
-		return this.contexts[ this.contexts.length - 1 ];
+		return this.contexts[this.contexts.length - 1];
 	}
 
 	/**
@@ -51,8 +51,8 @@ class Contextualizer {
 	 * @param {string} openTag.name HTML tag name
 	 * @param {Object} openTag.attributes HTML attributes as a string map
 	 */
-	onOpenTag( openTag ) {
-		this.contexts.push( this.getChildContext( openTag ) );
+	onOpenTag(openTag) {
+		this.contexts.push(this.getChildContext(openTag));
 	}
 
 	/**

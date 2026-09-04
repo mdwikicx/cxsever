@@ -1,5 +1,6 @@
 
 async function get_text_api_new(ty, title) {
+    // var url = 'https://medwiki.toolforge.org/get_html/rest_v1_page.php?title=' + title
     const options = {
         method: 'GET',
         dataType: 'json',

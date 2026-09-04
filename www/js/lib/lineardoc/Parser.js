@@ -32,13 +32,13 @@ const blockTags = [
 	'hr', 'button', 'canvas', 'center', 'col', 'colgroup', 'embed',
 	'map', 'object', 'pre', 'progress', 'video',
 	// non-annotation inline tags
-	'img', 'br'
+	'img', 'br',
+	'wiki-chart'
 ];
 
 /**
  * Parser to read an HTML stream into a Doc
  *
- * @class
  */
 class Parser extends SAXParser {
 	/**
