@@ -1,8 +1,6 @@
 /www/new_js
-/www/js/js-node_modules
-!/www/js/node_modules/.gitkeep
-/www/js/node_modules
 www/js.zip
 www/js/pos/Hirayama_disease.html
 www/js/pos/test.html
 www/js/nofix.html
+**/node_modules/**
