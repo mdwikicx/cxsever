@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = {
+	// cryptox: require( './cryptox' ),
 	Utils: require( './Utils' ),
 	Doc: require( './Doc' ),
 	TextBlock: require( './TextBlock' ),
@@ -9,6 +10,5 @@ module.exports = {
 	Parser: require( './Parser' ),
 	Contextualizer: require( './Contextualizer' ),
 	MwContextualizer: require( './MwContextualizer' ),
-	util: require( './util' ),
-	Normalizer: require( './Normalizer' )
+	util: require( './util' )
 };
