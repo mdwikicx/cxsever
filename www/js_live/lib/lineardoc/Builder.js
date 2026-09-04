@@ -1,9 +1,9 @@
 'use strict';
 
-import Doc from './Doc.js';
-import { isExternalLink, isReference, isTransclusion } from './Utils.js';
-import TextBlock from './TextBlock.js';
-import TextChunk from './TextChunk.js';
+const Doc = require('./Doc');
+const Utils = require('./Utils');
+const TextBlock = require('./TextBlock');
+const TextChunk = require('./TextChunk');
 
 /**
  * A document builder
@@ -119,7 +119,7 @@ class Builder {
 
 		// Allow empty external links because REST API v1 can output links with
 		// no link text (which then get a CSS generated content numbered reference).
-		if (replace && (isReference(tag) || isExternalLink(tag) || isTransclusion(tag))) {
+		if (replace && (Utils.isReference(tag) || Utils.isExternalLink(tag) || Utils.isTransclusion(tag))) {
 			// truncate list and add data span as new sub-Doc.
 			this.textChunks.length = i + 1;
 			whitespace.reverse();

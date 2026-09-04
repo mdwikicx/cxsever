@@ -4,9 +4,9 @@
  * @external TextBlock
  */
 
-import { createHash } from 'crypto';
-import { cloneOpenTag, getCloseTagHtml, getOpenTagHtml, isGallery, isMath, isNonTranslatable } from './Utils.js';
-import { getProp } from './../util.js';
+const Utils = require('./Utils');
+const cxutil = require('./../util');
+const crypto = require('crypto');
 
 /**
  * An HTML document in linear representation.
@@ -131,7 +131,7 @@ class Doc {
 		for (let i = 0, len = this.items.length; i < len; i++) {
 			const item = this.items[i];
 			if (this.items[i].type === 'open') {
-				const tag = cloneOpenTag(item.item);
+				const tag = Utils.cloneOpenTag(item.item);
 				if (tag.attributes.id) {
 					// If the item is a header, we make it a fixed length id using hash of
 					// the text content. Header ids are originally the header text to get
@@ -142,7 +142,7 @@ class Doc {
 						i + 1 < len &&
 						this.items[i + 1].type === 'textblock'
 					) {
-						const hash = createHash('sha256');
+						const hash = crypto.createHash('sha256');
 						hash.update(this.items[i + 1].item.getPlainText());
 						// 30 is the max length of ids we allow. We also prepend the sequence id
 						// just to make sure the ids don't collide if the same text repeats.
@@ -163,14 +163,14 @@ class Doc {
 				}
 				newDoc.addItem(item.type, tag);
 				// Content of tags that are either mw:Transclusion or mw:Extension need not be segmented.
-				const about = getProp(['attributes', 'about'], tag);
-				const typeOf = getProp(['attributes', 'typeof'], tag);
+				const about = cxutil.getProp(['attributes', 'about'], tag);
+				const typeOf = cxutil.getProp(['attributes', 'typeof'], tag);
 				if (about && typeOf) {
 					transclusionContext = about;
 				}
 			} else if (this.items[i].type === 'close') {
 				const tag = item.item;
-				const about = getProp(['attributes', 'about'], tag);
+				const about = cxutil.getProp(['attributes', 'about'], tag);
 				if (about && about === transclusionContext) {
 					transclusionContext = null;
 				}
@@ -208,7 +208,7 @@ class Doc {
 		const html = [];
 
 		if (this.wrapperTag) {
-			html.push(getOpenTagHtml(this.wrapperTag));
+			html.push(Utils.getOpenTagHtml(this.wrapperTag));
 		}
 		for (let i = 0, len = this.items.length; i < len; i++) {
 			const type = this.items[i].type;
@@ -220,10 +220,10 @@ class Doc {
 
 			if (type === 'open') {
 				const tag = item;
-				html.push(getOpenTagHtml(tag));
+				html.push(Utils.getOpenTagHtml(tag));
 			} else if (type === 'close') {
 				const tag = item;
-				html.push(getCloseTagHtml(tag));
+				html.push(Utils.getCloseTagHtml(tag));
 			} else if (type === 'blockspace') {
 				const space = item;
 				html.push(space);
@@ -236,7 +236,7 @@ class Doc {
 			}
 		}
 		if (this.wrapperTag) {
-			html.push(getCloseTagHtml(this.wrapperTag));
+			html.push(Utils.getCloseTagHtml(this.wrapperTag));
 		}
 		return html.join('');
 	}
@@ -507,7 +507,7 @@ class Doc {
 				attributes: Object.assign({}, this.wrapperTag.attributes)
 			};
 
-			if (isMath(this.wrapperTag)) {
+			if (Utils.isMath(this.wrapperTag)) {
 				// Do not send inline mw:Extention/math content to MT engines
 				// since they are known to mangle the content.
 				// Save the (inline) document in extractedData, return the document
@@ -525,7 +525,7 @@ class Doc {
 
 			if (type === 'open') {
 				const hasAttributes = hasAttributesToSave(tag);
-				const hasNonTranslatableContent = isNonTranslatable(tag);
+				const hasNonTranslatableContent = Utils.isNonTranslatable(tag);
 				if (hasAttributes || hasNonTranslatableContent) {
 					idCounter.value++;
 
@@ -556,7 +556,7 @@ class Doc {
 
 			if (type === 'close' || type === 'blockspace') {
 				reducedDoc.addItem(type, tag);
-				if (isNonTranslatable(tag)) {
+				if (Utils.isNonTranslatable(tag)) {
 					nonTranslatableContext = false;
 				}
 				continue;
@@ -585,7 +585,7 @@ class Doc {
 						};
 						chunkTag.attributes = { id: idCounter.value };
 
-						if (isNonTranslatable(originalTag)) {
+						if (Utils.isNonTranslatable(originalTag)) {
 							extractedData[idCounter.value] = Object.assign(
 								extractedData[idCounter.value] || {}, { content: chunk.text }
 							);
@@ -752,7 +752,7 @@ class Doc {
 		for (let i = 0, len = this.items.length; i < len; i++) {
 			const item = this.items[i];
 			if (this.items[i].type === 'open') {
-				const tag = cloneOpenTag(item.item);
+				const tag = Utils.cloneOpenTag(item.item);
 				if (i + 1 < len && this.items[i + 1].type === 'textblock') {
 					tag.children = this.items[i + 1].item;
 				}
@@ -763,8 +763,8 @@ class Doc {
 				} else {
 					newDoc.addItem(item.type, tag);
 				}
-				const about = getProp(['attributes', 'about'], tag);
-				if (about && !isGallery(tag)) {
+				const about = cxutil.getProp(['attributes', 'about'], tag);
+				if (about && !Utils.isGallery(tag)) {
 					// Presence of about attribute tells us that it is a transclusion or
 					// transclusion fragment. The innerbody of the transclusion can be
 					// skipped from adaption. Except in the case of Gallery with
@@ -773,7 +773,7 @@ class Doc {
 				}
 			} else if (this.items[i].type === 'close') {
 				const tag = item.item;
-				const about = getProp(['attributes', 'about'], tag);
+				const about = cxutil.getProp(['attributes', 'about'], tag);
 				if (about && about === transclusionContext) {
 					transclusionContext = null;
 				}

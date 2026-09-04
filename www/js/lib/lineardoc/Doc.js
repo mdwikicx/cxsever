@@ -30,7 +30,7 @@ class Doc {
 	/**
 	 * @param {string} wrapperTag open/close tags
 	 */
-	constructor(wrapperTag) {
+	constructor(wrapperTag = null) {
 		this.items = [];
 		this.wrapperTag = wrapperTag || null;
 		this.categories = [];
@@ -57,8 +57,7 @@ class Doc {
 	 *
 	 * @param {string} type Type of item: open|close|blockspace|textblock
 	 * @param {Object|string|TextBlock} item Open/close tag, space or text block
-	 * @return {Object}
-	 * @chainable
+	 * @return {this}
 	 */
 	addItem(type, item) {
 		this.items.push({ type, item });
@@ -468,7 +467,6 @@ class Doc {
 
 		// Check if the tag need to be translated by an MT service.
 		// If not, the translation from MT service won't be accepted.
-		const isNonTranslatable = Utils.isNonTranslatable;
 		let nonTranslatableContext = false;
 
 		// Check if there are attributes other than id to save in attrDump
@@ -510,7 +508,7 @@ class Doc {
 
 			if (type === 'open') {
 				const hasAttributes = hasAttributesToSave(tag);
-				const hasNonTranslatableContent = isNonTranslatable(tag);
+				const hasNonTranslatableContent = Utils.isNonTranslatable(tag);
 				if (hasAttributes || hasNonTranslatableContent) {
 					idCounter.value++;
 
@@ -541,7 +539,7 @@ class Doc {
 
 			if (type === 'close' || type === 'blockspace') {
 				reducedDoc.addItem(type, tag);
-				if (isNonTranslatable(tag)) {
+				if (Utils.isNonTranslatable(tag)) {
 					nonTranslatableContext = false;
 				}
 				continue;
@@ -570,7 +568,7 @@ class Doc {
 						};
 						chunkTag.attributes = { id: idCounter.value };
 
-						if (isNonTranslatable(originalTag)) {
+						if (Utils.isNonTranslatable(originalTag)) {
 							extractedData[idCounter.value] = Object.assign(
 								extractedData[idCounter.value] || {}, { content: chunk.text }
 							);

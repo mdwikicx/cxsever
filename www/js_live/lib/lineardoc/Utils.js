@@ -8,8 +8,8 @@
  * @external TextBlock
  */
 
-import TextChunk from './TextChunk.js';
-import { getProp } from './../util.js';
+const TextChunk = require('./TextChunk');
+const cxutil = require('./../util');
 
 /**
  * Find all matches of regex in text, calling callback with each match object
@@ -228,8 +228,8 @@ function isTransclusion(tag) {
 }
 
 function isTransclusionFragment(tag) {
-	return getProp(['attributes', 'about'], tag) &&
-		!getProp(['attributes', 'data-mw'], tag);
+	return cxutil.getProp(['attributes', 'about'], tag) &&
+		!cxutil.getProp(['attributes', 'data-mw'], tag);
 }
 
 /**
@@ -423,7 +423,7 @@ function hasTranslatableText(textBlock) {
 		// Text belonging to a transclusion is either inside a non-translatable
 		// tag or carries the transclusion's `about` grouping attribute.
 		return !chunk.tags.some(
-			(tag) => isNonTranslatable(tag) || getProp(['attributes', 'about'], tag)
+			(tag) => isNonTranslatable(tag) || cxutil.getProp(['attributes', 'about'], tag)
 		);
 	});
 }

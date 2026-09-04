@@ -1,10 +1,12 @@
+'use strict';
+
 /**
  * @external Contextualizer
  */
 
-import sax from 'sax';
-import Builder from './Builder.js';
-import { isTransclusion as _isTransclusion, isInlineEmptyTag, isMath, isReference, isSegment } from './Utils.js';
+const SAXParser = require('sax').SAXParser;
+const Builder = require('./Builder');
+const Utils = require('./Utils');
 
 const blockTags = [
 	'html', 'head', 'body', 'script',
@@ -38,7 +40,7 @@ const blockTags = [
  * Parser to read an HTML stream into a Doc
  *
  */
-class Parser extends sax.SAXParser {
+class Parser extends SAXParser {
 	/**
 	 * @param {Contextualizer} contextualizer Tag contextualizer
 	 * @param {Object} options Options
@@ -70,7 +72,7 @@ class Parser extends sax.SAXParser {
 			return;
 		}
 
-		if (this.options.isolateSegments && isSegment(tag)) {
+		if (this.options.isolateSegments && Utils.isSegment(tag)) {
 			this.builder.pushBlockTag({
 				name: 'div',
 				attributes: {
@@ -79,14 +81,14 @@ class Parser extends sax.SAXParser {
 			});
 		}
 
-		if (isReference(tag) || isMath(tag)) {
+		if (Utils.isReference(tag) || Utils.isMath(tag)) {
 			// Start a reference: create a child builder, and move into it
 			this.builder = this.builder.createChildBuilder(tag);
-		} else if (isInlineEmptyTag(tag.name)) {
+		} else if (Utils.isInlineEmptyTag(tag.name)) {
 			this.builder.addInlineContent(
 				tag, this.contextualizer.canSegment()
 			);
-		} else if (this.isInlineAnnotationTag(tag.name, _isTransclusion(tag))) {
+		} else if (this.isInlineAnnotationTag(tag.name, Utils.isTransclusion(tag))) {
 			this.builder.pushInlineAnnotationTag(tag);
 		} else {
 			this.builder.pushBlockTag(tag);
@@ -98,7 +100,7 @@ class Parser extends sax.SAXParser {
 
 	onclosetag(tagName) {
 		const tag = this.allTags.pop(),
-			isAnn = this.isInlineAnnotationTag(tagName, _isTransclusion(tag));
+			isAnn = this.isInlineAnnotationTag(tagName, Utils.isTransclusion(tag));
 
 		if (this.contextualizer.isRemovable(tag) || this.contextualizer.getContext() === 'removable') {
 			this.contextualizer.onCloseTag(tag);
@@ -107,11 +109,11 @@ class Parser extends sax.SAXParser {
 
 		this.contextualizer.onCloseTag(tag);
 
-		if (isInlineEmptyTag(tagName)) {
+		if (Utils.isInlineEmptyTag(tagName)) {
 			return;
 		} else if (isAnn && this.builder.inlineAnnotationTags.length > 0) {
 			this.builder.popInlineAnnotationTag(tagName);
-			if (this.options.isolateSegments && isSegment(tag)) {
+			if (this.options.isolateSegments && Utils.isSegment(tag)) {
 				this.builder.popBlockTag('div');
 			}
 		} else if (isAnn && this.builder.parent !== null) {

@@ -127,7 +127,7 @@ class MwContextualizer extends Contextualizer {
 		let mwData = {};
 		try {
 			mwData = JSON.parse(dataMW);
-		} catch (e) {
+		} catch {
 			return false;
 		}
 		const templateName = cxutil.getProp(['parts', 0, 'template', 'target', 'wt'], mwData);

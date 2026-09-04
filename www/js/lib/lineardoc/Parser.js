@@ -32,7 +32,8 @@ const blockTags = [
 	'hr', 'button', 'canvas', 'center', 'col', 'colgroup', 'embed',
 	'map', 'object', 'pre', 'progress', 'video',
 	// non-annotation inline tags
-	'img', 'br'
+	'img', 'br',
+	'wiki-chart'
 ];
 
 /**

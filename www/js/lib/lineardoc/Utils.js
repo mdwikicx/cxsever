@@ -4,6 +4,10 @@
  * @external Doc
  */
 
+/**
+ * @external TextBlock
+ */
+
 const TextChunk = require('./TextChunk');
 const cxutil = require('./util');
 
@@ -283,7 +287,7 @@ function getChunkBoundaryGroups(boundaries, chunks, getLength) {
 	// Get boundaries in order, disregarding the start of the first chunk
 	boundaries = boundaries.slice();
 	// by ibrahem qasim
-	// boundaries.sort( ( a, b ) => a - b );
+	// boundaries.sort((a, b) => a - b);
 	while (boundaries[boundaryPtr] === 0) {
 		boundaryPtr++;
 	}
@@ -377,12 +381,12 @@ function setLinkIdsInPlace(textChunks, getNextId) {
 			) {
 				// Hack: copy href, then remove it, then re-add it, so that
 				// attributes appear in alphabetical order (ugh)
+				// by ibrahem qasim start
 				/*
 				const href = tag.attributes.href;
 				delete tag.attributes.href;
-				tag.attributes.class = [ tag.attributes.class, 'cx-link' ].join( ' ' ).trim();
+				tag.attributes.class = [tag.attributes.class, 'cx-link'].join(' ').trim();
 				*/
-				// by ibrahem qasim
 				var href = tag.attributes.href;
 				// split href before ?
 				if (href.indexOf('?') !== -1) {
@@ -393,7 +397,7 @@ function setLinkIdsInPlace(textChunks, getNextId) {
 				delete tag.attributes.href;
 				delete tag.attributes['data-mw-i18n'];
 				tag.attributes.class = "cx-link";
-
+				// by ibrahem qasim end
 				tag.attributes['data-linkid'] = getNextId('link');
 				tag.attributes.href = href;
 			}

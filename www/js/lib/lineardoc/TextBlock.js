@@ -33,9 +33,7 @@ class TextBlock {
 	/**
 	 * Get the start and length of each non-common annotation
 	 *
-	 * @return {Object[]}
-	 * @return {number} [i].start {number} Position of each text chunk
-	 * @return {number} [i].length {number} Length of each text chunk
+	 * @return {Object[]} Array of text chunk information objects with start and length properties
 	 */
 	getTagOffsets() {
 		const textBlock = this,

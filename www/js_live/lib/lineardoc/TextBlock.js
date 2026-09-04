@@ -1,8 +1,8 @@
 'use strict';
 
-import TextChunk from './TextChunk.js';
-import { addCommonTag, dumpTags, esc, getChunkBoundaryGroups, getCloseTagHtml, getOpenTagHtml, isReference, isTransclusion, isTransclusionFragment, setLinkIdsInPlace } from './Utils.js';
-import { getProp } from './../util.js';
+const TextChunk = require('./TextChunk.js');
+const Utils = require('./Utils.js');
+const cxutil = require('./../util');
 
 /**
  * Whether the text chunk represents a reference marker.
@@ -13,10 +13,10 @@ import { getProp } from './../util.js';
 function isReferenceChunk(chunk) {
 	const inline = chunk.inlineContent;
 	if (inline && inline.wrapperTag && inline.wrapperTag.attributes &&
-		isReference(inline.wrapperTag)) {
+		Utils.isReference(inline.wrapperTag)) {
 		return true;
 	}
-	return chunk.tags.some((tag) => tag.attributes && isReference(tag));
+	return chunk.tags.some((tag) => tag.attributes && Utils.isReference(tag));
 }
 
 // Placeholder characters used when a text block is flattened to a plain
@@ -476,29 +476,29 @@ class TextBlock {
 				}
 			}
 			for (let j = oldTags.length - 1; j > matchTop; j--) {
-				html.push(getCloseTagHtml(oldTags[j]));
+				html.push(Utils.getCloseTagHtml(oldTags[j]));
 			}
 			for (let j = matchTop + 1, jLen = textChunk.tags.length; j < jLen; j++) {
-				html.push(getOpenTagHtml(textChunk.tags[j]));
+				html.push(Utils.getOpenTagHtml(textChunk.tags[j]));
 			}
 			oldTags = textChunk.tags;
 
 			// Now add text and inline content
-			html.push(esc(textChunk.text));
+			html.push(Utils.esc(textChunk.text));
 			if (textChunk.inlineContent) {
 				if (textChunk.inlineContent.getHtml) {
 					// a sub-doc
 					html.push(textChunk.inlineContent.getHtml());
 				} else {
 					// an empty inline tag
-					html.push(getOpenTagHtml(textChunk.inlineContent));
-					html.push(getCloseTagHtml(textChunk.inlineContent));
+					html.push(Utils.getOpenTagHtml(textChunk.inlineContent));
+					html.push(Utils.getCloseTagHtml(textChunk.inlineContent));
 				}
 			}
 		}
 		// Finally, close any remaining tags
 		for (let j = oldTags.length - 1; j >= 0; j--) {
-			html.push(getCloseTagHtml(oldTags[j]));
+			html.push(Utils.getCloseTagHtml(oldTags[j]));
 		}
 		return html.join('');
 	}
@@ -564,20 +564,20 @@ class TextBlock {
 			if (currentTextChunks.length === 0) {
 				return;
 			}
-			const modifiedTextChunks = addCommonTag(currentTextChunks, {
+			const modifiedTextChunks = Utils.addCommonTag(currentTextChunks, {
 				name: 'span',
 				attributes: {
 					class: 'cx-segment',
 					'data-segmentid': getNextId('segment')
 				}
 			});
-			setLinkIdsInPlace(modifiedTextChunks, getNextId);
+			Utils.setLinkIdsInPlace(modifiedTextChunks, getNextId);
 			allTextChunks.push.apply(allTextChunks, modifiedTextChunks);
 			currentTextChunks = [];
 		}
 
 		const rootItem = this.getRootItem();
-		if (rootItem && isTransclusion(rootItem)) {
+		if (rootItem && Utils.isTransclusion(rootItem)) {
 			// Avoid segmenting inside transclusions.
 			return this;
 		}
@@ -586,7 +586,7 @@ class TextBlock {
 		const validBoundaries = suppressAboutGroupBoundaries(
 			getBoundaries(this.getPlainText()), this.textChunks
 		);
-		const groups = getChunkBoundaryGroups(
+		const groups = Utils.getChunkBoundaryGroups(
 			validBoundaries,
 			this.textChunks,
 			(textChunk) => textChunk.text.length
@@ -630,7 +630,7 @@ class TextBlock {
 	 * @return {TextBlock} Segmented version, with added span tags
 	 */
 	setLinkIds(getNextId) {
-		setLinkIdsInPlace(this.textChunks, getNextId);
+		Utils.setLinkIdsInPlace(this.textChunks, getNextId);
 		return this;
 	}
 
@@ -655,13 +655,13 @@ class TextBlock {
 			const tagPromises = [],
 				tags = chunk.tags;
 			tags.forEach((tag) => {
-				const dataCX = getProp(['attributes', 'data-cx'], tag);
+				const dataCX = cxutil.getProp(['attributes', 'data-cx'], tag);
 				if (dataCX && Object.keys(JSON.parse(dataCX)).length) {
 					// Already adapted
 					return;
 				}
 				const adapter = getAdapter(tag);
-				if (adapter && !isTransclusionFragment(tag)) {
+				if (adapter && !Utils.isTransclusionFragment(tag)) {
 					// This loop get executed for open and close for the tag.
 					// Use data-cx to mark this tag processed. The actual adaptation
 					// process below will update this value.
@@ -678,7 +678,7 @@ class TextBlock {
 				} else {
 					// Inline content is inline empty tag. Examples are link, meta etc.
 					const adapter = getAdapter(chunk.inlineContent);
-					if (adapter && !isTransclusionFragment(chunk.inlineContent)) {
+					if (adapter && !Utils.isTransclusionFragment(chunk.inlineContent)) {
 						adaptPromise = adapter.adapt();
 					}
 				}
@@ -731,11 +731,11 @@ class TextBlock {
 		const dump = [];
 		for (let i = 0, len = this.textChunks.length; i < len; i++) {
 			const chunk = this.textChunks[i];
-			const tagsDump = dumpTags(chunk.tags);
+			const tagsDump = Utils.dumpTags(chunk.tags);
 			const tagsAttr = tagsDump ? ' tags="' + tagsDump + '"' : '';
 			if (chunk.text) {
 				dump.push(pad + '<cxtextchunk' + tagsAttr + '>' +
-					esc(chunk.text).replace(/\n/g, '&#10;') +
+					Utils.esc(chunk.text).replace(/\n/g, '&#10;') +
 					'</cxtextchunk>');
 			}
 			if (chunk.inlineContent) {

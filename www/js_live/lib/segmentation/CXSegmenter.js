@@ -1,4 +1,6 @@
-import segment from 'sentencex';
+'use strict';
+
+const segment = require('sentencex');
 
 class CXSegmenter {
 
