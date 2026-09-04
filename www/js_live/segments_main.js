@@ -1,4 +1,3 @@
-'use strict';
 
 import Parser from './lib/lineardoc/Parser';
 import MwContextualizer from './lib/lineardoc/MwContextualizer';
@@ -50,6 +49,12 @@ const removableSections = {
     ]
 };
 
+/**
+ * Converts HTML source into segmented HTML using a specific parser, contextualizer, and segmenter.
+ *
+ * @param {string} source_HTML - The source HTML string to be processed and segmented.
+ * @returns {string} The resulting segmented HTML string.
+ */
 function HtmltoSegments(source_HTML) {
 
     const parser = new Parser(new MwContextualizer(
@@ -70,6 +75,6 @@ function HtmltoSegments(source_HTML) {
     return result;
 }
 
-module.exports = {
+export default {
     HtmltoSegments: HtmltoSegments
 };

@@ -1,5 +1,5 @@
-'use strict';
+import * as LinearDoc from './lineardoc/index.js';
 
-module.exports = {
-	LinearDoc: require('./lineardoc')
+export default {
+	LinearDoc
 };

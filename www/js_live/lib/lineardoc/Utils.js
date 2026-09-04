@@ -1,11 +1,13 @@
-'use strict';
-
 /**
  * @external Doc
  */
 
-const TextChunk = require('./TextChunk');
-const cxutil = require('./util');
+/**
+ * @external TextBlock
+ */
+
+import TextChunk from './TextChunk.js';
+import { getProp } from './../util.js';
 
 /**
  * Find all matches of regex in text, calling callback with each match object
@@ -224,8 +226,8 @@ function isTransclusion(tag) {
 }
 
 function isTransclusionFragment(tag) {
-	return cxutil.getProp(['attributes', 'about'], tag) &&
-		!cxutil.getProp(['attributes', 'data-mw'], tag);
+	return getProp(['attributes', 'about'], tag) &&
+		!getProp(['attributes', 'data-mw'], tag);
 }
 
 /**
@@ -283,7 +285,7 @@ function getChunkBoundaryGroups(boundaries, chunks, getLength) {
 	// Get boundaries in order, disregarding the start of the first chunk
 	boundaries = boundaries.slice();
 	// by ibrahem qasim
-	// boundaries.sort( ( a, b ) => a - b );
+	// boundaries.sort((a, b) => a - b);
 	while (boundaries[boundaryPtr] === 0) {
 		boundaryPtr++;
 	}
@@ -377,12 +379,12 @@ function setLinkIdsInPlace(textChunks, getNextId) {
 			) {
 				// Hack: copy href, then remove it, then re-add it, so that
 				// attributes appear in alphabetical order (ugh)
+				// by ibrahem qasim start
 				/*
 				const href = tag.attributes.href;
 				delete tag.attributes.href;
-				tag.attributes.class = [ tag.attributes.class, 'cx-link' ].join( ' ' ).trim();
+				tag.attributes.class = [tag.attributes.class, 'cx-link'].join(' ').trim();
 				*/
-				// by ibrahem qasim
 				var href = tag.attributes.href;
 				// split href before ?
 				if (href.indexOf('?') !== -1) {
@@ -393,12 +395,35 @@ function setLinkIdsInPlace(textChunks, getNextId) {
 				delete tag.attributes.href;
 				delete tag.attributes['data-mw-i18n'];
 				tag.attributes.class = "cx-link";
-
+				// by ibrahem qasim end
 				tag.attributes['data-linkid'] = getNextId('link');
 				tag.attributes.href = href;
 			}
 		}
 	}
+}
+
+/**
+ * Check if a textblock has any text that should be machine translated, i.e.
+ * non-whitespace text that is not part of a transclusion. A textblock can begin
+ * with an inline transclusion (for example the {{Nihongo}} template) and still
+ * carry translatable prose around it, so the mere presence of a transclusion
+ * does not make the whole block ignorable.
+ *
+ * @param {TextBlock} textBlock
+ * @return {boolean}
+ */
+function hasTranslatableText(textBlock) {
+	return textBlock.textChunks.some((chunk) => {
+		if (!chunk.text || !chunk.text.match(/[^\s]/)) {
+			return false;
+		}
+		// Text belonging to a transclusion is either inside a non-translatable
+		// tag or carries the transclusion's `about` grouping attribute.
+		return !chunk.tags.some(
+			(tag) => isNonTranslatable(tag) || getProp(['attributes', 'about'], tag)
+		);
+	});
 }
 
 /**
@@ -438,6 +463,10 @@ function isIgnorableBlock(sectionDoc) {
 
 		// Also check for textblocks
 		if (!firstBlockTemplate && item.type === 'textblock') {
+			if (hasTranslatableText(item.item)) {
+				// The block carries prose outside any transclusion.
+				return false;
+			}
 			const rootItem = item.item.getRootItem();
 			if (rootItem && isNonTranslatable(rootItem)) {
 				firstBlockTemplate = rootItem;
@@ -453,7 +482,7 @@ function isIgnorableBlock(sectionDoc) {
 	return ignorable;
 }
 
-module.exports = {
+export default {
 	addCommonTag,
 	cloneOpenTag,
 	dumpTags,

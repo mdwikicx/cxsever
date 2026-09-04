@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @external Doc
  */
@@ -12,7 +10,6 @@
  * reference span). The tags and/or reference apply to the whole text;
  * therefore text with varying markup must be split into multiple chunks.
  *
- * @class
  */
 class TextChunk {
 	/**
@@ -26,4 +23,5 @@ class TextChunk {
 		this.inlineContent = inlineContent;
 	}
 }
-module.exports = TextChunk;
+
+export default TextChunk;

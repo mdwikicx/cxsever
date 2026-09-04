@@ -1,12 +1,10 @@
-'use strict';
-
 /**
  * @external TextBlock
  */
 
-const Utils = require('./Utils');
-const cxutil = require('./util');
-const crypto = require('crypto');
+import { createHash } from 'crypto';
+import { cloneOpenTag, getCloseTagHtml, getOpenTagHtml, isGallery, isMath, isNonTranslatable } from './Utils.js';
+import { getProp } from './../util.js';
 
 /**
  * An HTML document in linear representation.
@@ -25,28 +23,20 @@ const crypto = require('crypto');
  *
  * N.B. 2 can change semantics, e.g. identical adjacent links != single link
  *
- * @class
  */
 class Doc {
 	/**
 	 * @param {string} wrapperTag open/close tags
 	 */
-	constructor(wrapperTag) {
-		/**
-		 * @type {{ type: string; }[]}
-		 */
+	constructor(wrapperTag = null) {
 		this.items = [];
 		this.wrapperTag = wrapperTag || null;
-		/**
-		 * @type {any[]}
-		 */
 		this.categories = [];
 	}
 
 	/**
 	 * Clone the Doc, modifying as we go
 	 *
-	 * @method
 	 * @param {Function} callback The function to modify a node
 	 * @return {Doc} clone with modifications
 	 */
@@ -63,11 +53,9 @@ class Doc {
 	/**
 	 * Add an item to the document
 	 *
-	 * @method
 	 * @param {string} type Type of item: open|close|blockspace|textblock
 	 * @param {Object|string|TextBlock} item Open/close tag, space or text block
-	 * @return {Object}
-	 * @chainable
+	 * @return {this}
 	 */
 	addItem(type, item) {
 		this.items.push({ type, item });
@@ -112,7 +100,6 @@ class Doc {
 	/**
 	 * Segment the document into sentences
 	 *
-	 * @method
 	 * @param {Function} getBoundaries Function taking plaintext, returning offset array
 	 * @return {Doc} Segmented version of document TODO: warning: *shallow copied*.
 	 */
@@ -142,7 +129,7 @@ class Doc {
 		for (let i = 0, len = this.items.length; i < len; i++) {
 			const item = this.items[i];
 			if (this.items[i].type === 'open') {
-				const tag = Utils.cloneOpenTag(item.item);
+				const tag = cloneOpenTag(item.item);
 				if (tag.attributes.id) {
 					// If the item is a header, we make it a fixed length id using hash of
 					// the text content. Header ids are originally the header text to get
@@ -153,7 +140,7 @@ class Doc {
 						i + 1 < len &&
 						this.items[i + 1].type === 'textblock'
 					) {
-						const hash = crypto.createHash('sha256');
+						const hash = createHash('sha256');
 						hash.update(this.items[i + 1].item.getPlainText());
 						// 30 is the max length of ids we allow. We also prepend the sequence id
 						// just to make sure the ids don't collide if the same text repeats.
@@ -174,14 +161,14 @@ class Doc {
 				}
 				newDoc.addItem(item.type, tag);
 				// Content of tags that are either mw:Transclusion or mw:Extension need not be segmented.
-				const about = cxutil.getProp(['attributes', 'about'], tag);
-				const typeOf = cxutil.getProp(['attributes', 'typeof'], tag);
+				const about = getProp(['attributes', 'about'], tag);
+				const typeOf = getProp(['attributes', 'typeof'], tag);
 				if (about && typeOf) {
 					transclusionContext = about;
 				}
 			} else if (this.items[i].type === 'close') {
 				const tag = item.item;
-				const about = cxutil.getProp(['attributes', 'about'], tag);
+				const about = getProp(['attributes', 'about'], tag);
 				if (about && about === transclusionContext) {
 					transclusionContext = null;
 				}
@@ -204,7 +191,6 @@ class Doc {
 	/**
 	 * Dump an XML version of the linear representation, for debugging
 	 *
-	 * @method
 	 * @return {string} XML version of the linear representation
 	 */
 	dumpXml() {
@@ -214,14 +200,13 @@ class Doc {
 	/**
 	 * Dump the document in HTML format
 	 *
-	 * @method
 	 * @return {string} HTML document
 	 */
 	getHtml() {
 		const html = [];
 
 		if (this.wrapperTag) {
-			html.push(Utils.getOpenTagHtml(this.wrapperTag));
+			html.push(getOpenTagHtml(this.wrapperTag));
 		}
 		for (let i = 0, len = this.items.length; i < len; i++) {
 			const type = this.items[i].type;
@@ -233,10 +218,10 @@ class Doc {
 
 			if (type === 'open') {
 				const tag = item;
-				html.push(Utils.getOpenTagHtml(tag));
+				html.push(getOpenTagHtml(tag));
 			} else if (type === 'close') {
 				const tag = item;
-				html.push(Utils.getCloseTagHtml(tag));
+				html.push(getCloseTagHtml(tag));
 			} else if (type === 'blockspace') {
 				const space = item;
 				html.push(space);
@@ -249,7 +234,7 @@ class Doc {
 			}
 		}
 		if (this.wrapperTag) {
-			html.push(Utils.getCloseTagHtml(this.wrapperTag));
+			html.push(getCloseTagHtml(this.wrapperTag));
 		}
 		return html.join('');
 	}
@@ -258,15 +243,10 @@ class Doc {
 	 * Wrap the content into sections
 	 * See doc/SectionWrap.md for detailed documentaion.
 	 *
-	 * @method
 	 * @return {string} HTML document
 	 */
 	wrapSections() {
 		const newDoc = new Doc();
-		/**
-		 * @type {string}
-		 * @type {string}
-		 */
 		let inBody = false,
 			prevSection = null,
 			currSection = null;
@@ -375,11 +355,14 @@ class Doc {
 
 				if (!tagForId && !currSection) {
 					// Textblock with no tag identifier. Add it to the previous section
-					insertToPrevSection(item, newDoc);
-					continue;
+					if (prevSection && newDoc.getCurrentItem().item.name === 'section') {
+						insertToPrevSection(item, newDoc);
+						continue;
+					}
+					// No previous section to attach to; fall through to open a new one
 				}
 
-				const isConnected = tagForId && prevSection === getTagId(tagForId);
+				const isConnected = tagForId && !currSection && prevSection === getTagId(tagForId);
 
 				if (isConnected) {
 					// This tag is connected to previous section. Can be a template fragment.
@@ -412,7 +395,6 @@ class Doc {
 	/**
 	 * Dump an XML Array version of the linear representation, for debugging
 	 *
-	 * @method
 	 * @param {string} pad
 	 * @return {string[]} Array that will concatenate to an XML string representation
 	 */
@@ -461,7 +443,6 @@ class Doc {
 	/**
 	 * Extract the text segments from the document
 	 *
-	 * @method
 	 * @return {string[]} balanced html fragments, one per segment
 	 */
 	getSegments() {
@@ -501,11 +482,10 @@ class Doc {
 
 		// Check if the tag need to be translated by an MT service.
 		// If not, the translation from MT service won't be accepted.
-		const isNonTranslatable = Utils.isNonTranslatable;
 		let nonTranslatableContext = false;
 
 		// Check if there are attributes other than id to save in attrDump
-		const hasAttributesToSave = (/** @type {string} */ obj) => {
+		const hasAttributesToSave = (obj) => {
 			const keys = obj.attributes && Object.keys(obj.attributes);
 			if (!keys || keys.length === 0) {
 				return false;
@@ -525,7 +505,7 @@ class Doc {
 				attributes: Object.assign({}, this.wrapperTag.attributes)
 			};
 
-			if (Utils.isMath(this.wrapperTag)) {
+			if (isMath(this.wrapperTag)) {
 				// Do not send inline mw:Extention/math content to MT engines
 				// since they are known to mangle the content.
 				// Save the (inline) document in extractedData, return the document
@@ -647,7 +627,7 @@ class Doc {
 		const expandedDoc = new Doc(this.wrapperTag);
 		let id = 0;
 
-		const hasAttributes = (/** @type {string} */ obj) => obj.attributes && Object.keys(obj.attributes).length;
+		const hasAttributes = (obj) => obj.attributes && Object.keys(obj.attributes).length;
 		if (this.wrapperTag && hasAttributes(this.wrapperTag)) {
 			id = this.wrapperTag.attributes.id;
 			if (extractedData[id]) {
@@ -752,7 +732,6 @@ class Doc {
 	/**
 	 * Recursively adapt all nodes in the document.
 	 *
-	 * @method
 	 * @param {Function} getAdapter Function taking a tag, returning adapted output
 	 * @return {Doc} Adapted version of document TODO: warning: *shallow copied*.
 	 */
@@ -771,7 +750,7 @@ class Doc {
 		for (let i = 0, len = this.items.length; i < len; i++) {
 			const item = this.items[i];
 			if (this.items[i].type === 'open') {
-				const tag = Utils.cloneOpenTag(item.item);
+				const tag = cloneOpenTag(item.item);
 				if (i + 1 < len && this.items[i + 1].type === 'textblock') {
 					tag.children = this.items[i + 1].item;
 				}
@@ -782,8 +761,8 @@ class Doc {
 				} else {
 					newDoc.addItem(item.type, tag);
 				}
-				const about = cxutil.getProp(['attributes', 'about'], tag);
-				if (about && !Utils.isGallery(tag)) {
+				const about = getProp(['attributes', 'about'], tag);
+				if (about && !isGallery(tag)) {
 					// Presence of about attribute tells us that it is a transclusion or
 					// transclusion fragment. The innerbody of the transclusion can be
 					// skipped from adaption. Except in the case of Gallery with
@@ -792,7 +771,7 @@ class Doc {
 				}
 			} else if (this.items[i].type === 'close') {
 				const tag = item.item;
-				const about = cxutil.getProp(['attributes', 'about'], tag);
+				const about = getProp(['attributes', 'about'], tag);
 				if (about && about === transclusionContext) {
 					transclusionContext = null;
 				}
@@ -815,6 +794,24 @@ class Doc {
 
 		return newDoc;
 	}
+
+	/**
+	 * Reposition reference markers relative to sentence punctuation across the
+	 * whole document, according to the target language convention.
+	 *
+	 * @param {Object} options
+	 * @param {string} options.policy 'before' or 'after'
+	 * @param {string[]} options.punctuation Punctuation marks to reposition around
+	 * @return {Doc} This document, with references repositioned
+	 */
+	adaptReferencePunctuation(options) {
+		for (let i = 0, len = this.items.length; i < len; i++) {
+			if (this.items[i].type === 'textblock') {
+				this.items[i].item = this.items[i].item.adaptReferencePunctuation(options);
+			}
+		}
+		return this;
+	}
 }
 
-module.exports = Doc;
+export default Doc;

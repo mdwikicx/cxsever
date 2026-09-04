@@ -1,7 +1,5 @@
-'use strict';
-
-const Contextualizer = require('./Contextualizer');
-const cxutil = require('./util');
+import Contextualizer from './Contextualizer.js';
+import { getProp } from './../util.js';
 const contentBranchNodeNames = ['blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'pre', 'div', 'table', 'ol', 'ul', 'dl', 'figure', 'center', 'section'];
 
 /**
@@ -9,9 +7,6 @@ const contentBranchNodeNames = ['blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
  *
  * See https://www.mediawiki.org/wiki/Specs/HTML
  *
- * @class
- * @extends Contextualizer
- * @constructor
  */
 class MwContextualizer extends Contextualizer {
 	/**
@@ -128,10 +123,10 @@ class MwContextualizer extends Contextualizer {
 		let mwData = {};
 		try {
 			mwData = JSON.parse(dataMW);
-		} catch (e) {
+		} catch {
 			return false;
 		}
-		const templateName = cxutil.getProp(['parts', 0, 'template', 'target', 'wt'], mwData);
+		const templateName = getProp(['parts', 0, 'template', 'target', 'wt'], mwData);
 		if (!templateName) {
 			return false;
 		}
@@ -161,4 +156,4 @@ class MwContextualizer extends Contextualizer {
 	}
 }
 
-module.exports = MwContextualizer;
+export default MwContextualizer;

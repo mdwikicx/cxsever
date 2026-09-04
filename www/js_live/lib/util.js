@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @external Application
  * @external Request
@@ -15,7 +13,6 @@
  * @param {Object} obj Object
  * @return {Object|string|number|null}
  */
-
 function getProp(path, obj) {
 	return path.reduce(
 		(accumulator, currentValue) => (accumulator && accumulator[currentValue]) ?
@@ -25,6 +22,6 @@ function getProp(path, obj) {
 	);
 }
 
-module.exports = {
+export default {
 	getProp
 };

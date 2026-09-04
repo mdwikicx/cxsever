@@ -1,13 +1,228 @@
-'use strict';
+import TextChunk from './TextChunk.js';
+import { addCommonTag, dumpTags, esc, getChunkBoundaryGroups, getCloseTagHtml, getOpenTagHtml, isReference, isTransclusion, isTransclusionFragment, setLinkIdsInPlace } from './Utils.js';
+import { getProp } from './../util.js';
 
-const TextChunk = require('./TextChunk');
-const Utils = require('./Utils');
-const cxutil = require('./util');
+/**
+ * Whether the text chunk represents a reference marker.
+ *
+ * @param {TextChunk} chunk
+ * @return {boolean}
+ */
+function isReferenceChunk(chunk) {
+	const inline = chunk.inlineContent;
+	if (inline && inline.wrapperTag && inline.wrapperTag.attributes &&
+		isReference(inline.wrapperTag)) {
+		return true;
+	}
+	return chunk.tags.some((tag) => tag.attributes && isReference(tag));
+}
+
+// Placeholder characters used when a text block is flattened to a plain
+// string. These are Unicode noncharacters (U+FDD0 and U+FDD1), guaranteed
+// absent from interchanged text.
+const REF_CHAR = '\uFDD0';
+const INLINE_CHAR = '\uFDD1';
+
+/**
+ * Flatten chunks into one item per string position. Reference markers and
+ * other inline content become a single placeholder item; text chunks
+ * contribute one item per code unit, each remembering its source chunk.
+ * The concatenated chars form the plain text of the block, so rules matched
+ * against it do not depend on how the text is split into chunks.
+ *
+ * @param {TextChunk[]} chunks
+ * @return {Object[]} Items of shape { char, chunk, atomic }
+ */
+function toCharItems(chunks) {
+	const items = [];
+	for (const chunk of chunks) {
+		if (isReferenceChunk(chunk)) {
+			items.push({ char: REF_CHAR, chunk, atomic: true });
+		} else if (chunk.inlineContent) {
+			items.push({ char: INLINE_CHAR, chunk, atomic: true });
+		} else {
+			for (let i = 0; i < chunk.text.length; i++) {
+				items.push({ char: chunk.text[i], chunk });
+			}
+		}
+	}
+	return items;
+}
+
+/**
+ * Rebuild a chunk list from (reordered) flattened items. Atomic items emit
+ * their original chunk; consecutive characters from the same source chunk
+ * merge back into a single chunk. Source tags arrays are reused by
+ * reference, which keeps the serialized markup of untouched regions
+ * byte-identical.
+ *
+ * @param {Object[]} items Items produced by toCharItems
+ * @return {TextChunk[]} New chunk list
+ */
+function toChunks(items) {
+	const chunks = [];
+	let text = '';
+	let source = null;
+	const flush = () => {
+		if (text !== '') {
+			chunks.push(new TextChunk(text, source.tags));
+			text = '';
+		}
+	};
+	for (const item of items) {
+		if (item.atomic) {
+			flush();
+			source = null;
+			chunks.push(item.chunk);
+		} else if (item.chunk === source) {
+			text += item.char;
+		} else {
+			flush();
+			source = item.chunk;
+			text = item.char;
+		}
+	}
+	flush();
+	return chunks;
+}
+
+/**
+ * Escape a character for use inside a regex character class.
+ *
+ * @param {string} char
+ * @return {string}
+ */
+function escapeForCharClass(char) {
+	return char.replace(/[\\\]^-]/g, '\\$&');
+}
+
+/**
+ * Move sentence punctuation across reference runs to the side preferred by
+ * the target language. The block is flattened to a plain string in which
+ * every reference marker is a single placeholder character, so the rule is
+ * one regex over the visible text, independent of chunk boundaries. The
+ * whitespace that separated the word, punctuation and references is dropped
+ * so that the three stay glued together; whitespace between the references
+ * of a run is preserved.
+ *
+ * @param {TextChunk[]} chunks
+ * @param {string} policy 'before' or 'after'
+ * @param {string[]} punctuation Punctuation marks to reposition around
+ * @return {TextChunk[]} New chunk list
+ */
+function movePunctuationAcrossReferences(chunks, policy, punctuation) {
+	const items = toCharItems(chunks);
+	const text = items.map((item) => item.char).join('');
+	const punct = '([' + punctuation.map(escapeForCharClass).join('') + '])';
+	const run = `(${REF_CHAR}(?:\\s*${REF_CHAR})*)`;
+	const pattern = policy === 'before' ?
+		new RegExp(`${punct}\\s*${run}`, 'gd') :
+		new RegExp(`\\s*${run}\\s*${punct}`, 'gd');
+
+	const reordered = [];
+	let position = 0;
+	for (const match of text.matchAll(pattern)) {
+		const [runStart, runEnd] = match.indices[policy === 'before' ? 2 : 1];
+		const runItems = items.slice(runStart, runEnd);
+		// The moved punctuation inherits the reference tags (e.g. the segment
+		// span) so it stays inside the same markup as the reference run.
+		const punctItem = {
+			char: match[policy === 'before' ? 1 : 2],
+			chunk: { tags: runItems[runItems.length - 1].chunk.tags }
+		};
+		reordered.push(...items.slice(position, match.index));
+		if (policy === 'before') {
+			reordered.push(...runItems, punctItem);
+		} else {
+			reordered.push(punctItem, ...runItems);
+		}
+		position = match.index + match[0].length;
+	}
+	reordered.push(...items.slice(position));
+	return toChunks(reordered);
+}
+
+/**
+ * Get the values of the "about" attribute of a text chunk.
+ *
+ * The values come from the annotation tags of the chunk and from its
+ * inline content. Inline content is not always a tag: for references it
+ * is a sub-document with no attributes property. Read attributes only
+ * when they are present.
+ *
+ * @param {TextChunk} chunk
+ * @return {string[]} The about values; can be empty
+ */
+function getChunkAboutValues(chunk) {
+	const values = [];
+	for (let i = 0, len = chunk.tags.length; i < len; i++) {
+		const attributes = chunk.tags[i].attributes;
+		if (attributes && attributes.about) {
+			values.push(attributes.about);
+		}
+	}
+	const inline = chunk.inlineContent;
+	if (inline && inline.attributes && inline.attributes.about) {
+		values.push(inline.attributes.about);
+	}
+	return values;
+}
+
+/**
+ * Remove sentence boundaries that fall inside a transclusion about-group.
+ *
+ * Parsoid puts an inline transclusion into sibling elements that share one
+ * "about" attribute. These siblings must stay together. A sentence boundary
+ * between them would put the fragments into different segments and thus
+ * into different parent elements (T213262). A boundary is inside a group
+ * when the chunks on the two sides of it share an about value. The run
+ * before the boundary includes zero-width chunks, such as category links.
+ *
+ * @param {number[]} boundaries Sentence boundary offsets
+ * @param {TextChunk[]} textChunks The chunks of the text block
+ * @return {number[]} The boundaries that do not break an about-group
+ */
+function suppressAboutGroupBoundaries(boundaries, textChunks) {
+	const starts = [];
+	let offset = 0;
+	for (let i = 0, len = textChunks.length; i < len; i++) {
+		starts.push(offset);
+		offset += textChunks[i].text.length;
+	}
+	return boundaries.filter((boundary) => {
+		// Find the first chunk with content at or after the boundary.
+		// Zero-width chunks at the boundary belong to the run before it.
+		let i = 0;
+		while (i < textChunks.length &&
+			starts[i] + textChunks[i].text.length <= boundary) {
+			i++;
+		}
+		if (i === textChunks.length) {
+			return true;
+		}
+		const afterAbouts = getChunkAboutValues(textChunks[i]);
+		if (afterAbouts.length === 0) {
+			return true;
+		}
+		if (starts[i] < boundary) {
+			// The boundary is in the interior of a chunk that carries an
+			// about value: the two sides share it.
+			return false;
+		}
+		const beforeAbouts = [];
+		for (let j = i - 1; j >= 0; j--) {
+			beforeAbouts.push(...getChunkAboutValues(textChunks[j]));
+			if (textChunks[j].text.length > 0) {
+				break;
+			}
+		}
+		return !afterAbouts.some((about) => beforeAbouts.includes(about));
+	});
+}
 
 /**
  * A block of annotated inline text
  *
- * @class
  */
 class TextBlock {
 	/**
@@ -34,9 +249,7 @@ class TextBlock {
 	/**
 	 * Get the start and length of each non-common annotation
 	 *
-	 * @return {Object[]}
-	 * @return {number} [i].start {number} Position of each text chunk
-	 * @return {number} [i].length {number} Length of each text chunk
+	 * @return {Object[]} Array of text chunk information objects with start and length properties
 	 */
 	getTagOffsets() {
 		const textBlock = this,
@@ -50,7 +263,6 @@ class TextBlock {
 	/**
 	 * Get the (last) text chunk at a given char offset
 	 *
-	 * @method
 	 * @param {number} charOffset The char offset of the TextChunk
 	 * @return {TextChunk} The text chunk
 	 */
@@ -94,7 +306,6 @@ class TextBlock {
 	/**
 	 * Create a new TextBlock, applying our annotations to a translation
 	 *
-	 * @method
 	 * @param {string} targetText Translated plain text
 	 * @param {Object[]} rangeMappings Array of source-target range index mappings
 	 * @return {TextBlock} Translated textblock with tags applied
@@ -263,29 +474,29 @@ class TextBlock {
 				}
 			}
 			for (let j = oldTags.length - 1; j > matchTop; j--) {
-				html.push(Utils.getCloseTagHtml(oldTags[j]));
+				html.push(getCloseTagHtml(oldTags[j]));
 			}
 			for (let j = matchTop + 1, jLen = textChunk.tags.length; j < jLen; j++) {
-				html.push(Utils.getOpenTagHtml(textChunk.tags[j]));
+				html.push(getOpenTagHtml(textChunk.tags[j]));
 			}
 			oldTags = textChunk.tags;
 
 			// Now add text and inline content
-			html.push(Utils.esc(textChunk.text));
+			html.push(esc(textChunk.text));
 			if (textChunk.inlineContent) {
 				if (textChunk.inlineContent.getHtml) {
 					// a sub-doc
 					html.push(textChunk.inlineContent.getHtml());
 				} else {
 					// an empty inline tag
-					html.push(Utils.getOpenTagHtml(textChunk.inlineContent));
-					html.push(Utils.getCloseTagHtml(textChunk.inlineContent));
+					html.push(getOpenTagHtml(textChunk.inlineContent));
+					html.push(getCloseTagHtml(textChunk.inlineContent));
 				}
 			}
 		}
 		// Finally, close any remaining tags
 		for (let j = oldTags.length - 1; j >= 0; j--) {
-			html.push(Utils.getCloseTagHtml(oldTags[j]));
+			html.push(getCloseTagHtml(oldTags[j]));
 		}
 		return html.join('');
 	}
@@ -339,7 +550,6 @@ class TextBlock {
 	/**
 	 * Segment the text block into sentences
 	 *
-	 * @method
 	 * @param {Function} getBoundaries Function taking plaintext, returning offset array
 	 * @param {Function} getNextId Function taking 'segment'|'link', returning next ID
 	 * @return {TextBlock} Segmented version, with added span tags
@@ -352,27 +562,30 @@ class TextBlock {
 			if (currentTextChunks.length === 0) {
 				return;
 			}
-			const modifiedTextChunks = Utils.addCommonTag(currentTextChunks, {
+			const modifiedTextChunks = addCommonTag(currentTextChunks, {
 				name: 'span',
 				attributes: {
 					class: 'cx-segment',
 					'data-segmentid': getNextId('segment')
 				}
 			});
-			Utils.setLinkIdsInPlace(modifiedTextChunks, getNextId);
+			setLinkIdsInPlace(modifiedTextChunks, getNextId);
 			allTextChunks.push.apply(allTextChunks, modifiedTextChunks);
 			currentTextChunks = [];
 		}
 
 		const rootItem = this.getRootItem();
-		if (rootItem && Utils.isTransclusion(rootItem)) {
+		if (rootItem && isTransclusion(rootItem)) {
 			// Avoid segmenting inside transclusions.
 			return this;
 		}
 
 		// for each chunk, split at any boundaries that occur inside the chunk
-		const groups = Utils.getChunkBoundaryGroups(
-			getBoundaries(this.getPlainText()),
+		const validBoundaries = suppressAboutGroupBoundaries(
+			getBoundaries(this.getPlainText()), this.textChunks
+		);
+		const groups = getChunkBoundaryGroups(
+			validBoundaries,
 			this.textChunks,
 			(textChunk) => textChunk.text.length
 		);
@@ -415,7 +628,7 @@ class TextBlock {
 	 * @return {TextBlock} Segmented version, with added span tags
 	 */
 	setLinkIds(getNextId) {
-		Utils.setLinkIdsInPlace(this.textChunks, getNextId);
+		setLinkIdsInPlace(this.textChunks, getNextId);
 		return this;
 	}
 
@@ -440,13 +653,13 @@ class TextBlock {
 			const tagPromises = [],
 				tags = chunk.tags;
 			tags.forEach((tag) => {
-				const dataCX = cxutil.getProp(['attributes', 'data-cx'], tag);
+				const dataCX = getProp(['attributes', 'data-cx'], tag);
 				if (dataCX && Object.keys(JSON.parse(dataCX)).length) {
 					// Already adapted
 					return;
 				}
 				const adapter = getAdapter(tag);
-				if (adapter && !Utils.isTransclusionFragment(tag)) {
+				if (adapter && !isTransclusionFragment(tag)) {
 					// This loop get executed for open and close for the tag.
 					// Use data-cx to mark this tag processed. The actual adaptation
 					// process below will update this value.
@@ -463,7 +676,7 @@ class TextBlock {
 				} else {
 					// Inline content is inline empty tag. Examples are link, meta etc.
 					const adapter = getAdapter(chunk.inlineContent);
-					if (adapter && !Utils.isTransclusionFragment(chunk.inlineContent)) {
+					if (adapter && !isTransclusionFragment(chunk.inlineContent)) {
 						adaptPromise = adapter.adapt();
 					}
 				}
@@ -481,9 +694,34 @@ class TextBlock {
 	}
 
 	/**
+	 * Move reference markers relative to sentence punctuation according to the
+	 * target language convention (e.g. French and Polish place references before
+	 * the full stop). Reference bodies are left untouched.
+	 *
+	 * @param {Object} options
+	 * @param {string} options.policy 'before' or 'after'
+	 * @param {string[]} options.punctuation Punctuation marks to reposition around
+	 * @return {TextBlock} New text block with punctuation repositioned
+	 */
+	adaptReferencePunctuation(options) {
+		// Recurse into inline sub-documents, but not into reference bodies.
+		const chunks = this.textChunks.map((chunk) => {
+			const inline = chunk.inlineContent;
+			if (inline && inline.adaptReferencePunctuation && !isReferenceChunk(chunk)) {
+				return new TextChunk(
+					chunk.text, chunk.tags, inline.adaptReferencePunctuation(options)
+				);
+			}
+			return chunk;
+		});
+		return new TextBlock(
+			movePunctuationAcrossReferences(chunks, options.policy, options.punctuation)
+		);
+	}
+
+	/**
 	 * Dump an XML Array version of the linear representation, for debugging
 	 *
-	 * @method
 	 * @param {string} pad Whitespace to indent XML elements
 	 * @return {string[]} Array that will concatenate to an XML string representation
 	 */
@@ -491,11 +729,11 @@ class TextBlock {
 		const dump = [];
 		for (let i = 0, len = this.textChunks.length; i < len; i++) {
 			const chunk = this.textChunks[i];
-			const tagsDump = Utils.dumpTags(chunk.tags);
+			const tagsDump = dumpTags(chunk.tags);
 			const tagsAttr = tagsDump ? ' tags="' + tagsDump + '"' : '';
 			if (chunk.text) {
 				dump.push(pad + '<cxtextchunk' + tagsAttr + '>' +
-					Utils.esc(chunk.text).replace(/\n/g, '&#10;') +
+					esc(chunk.text).replace(/\n/g, '&#10;') +
 					'</cxtextchunk>');
 			}
 			if (chunk.inlineContent) {
@@ -513,4 +751,4 @@ class TextBlock {
 	}
 }
 
-module.exports = TextBlock;
+export default TextBlock;
