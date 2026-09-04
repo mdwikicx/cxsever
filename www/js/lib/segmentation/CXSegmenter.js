@@ -1,6 +1,6 @@
 'use strict';
 
-const segment = require( 'sentencex' );
+const segment = require('sentencex');
 
 class CXSegmenter {
 
@@ -11,8 +11,8 @@ class CXSegmenter {
 	 * @param {string} language
 	 * @return {Object}
 	 */
-	segment( parsedDoc, language ) {
-		return parsedDoc.segment( this.getSegmenter( language ) );
+	segment(parsedDoc, language) {
+		return parsedDoc.segment(this.getSegmenter(language));
 	}
 
 	/**
@@ -21,13 +21,13 @@ class CXSegmenter {
 	 * @param {string} language Language code
 	 * @return {Function} The function that returns Sentence boundary offsets
 	 */
-	getSegmenter( language ) {
-		return ( text ) => {
-			const sentences = segment( language, text );
+	getSegmenter(language) {
+		return (text) => {
+			const sentences = segment(language, text);
 			const boundaries = [];
-			for ( let i = 0; i < sentences.length; i++ ) {
-				if ( sentences[ i ].trim().length ) {
-					boundaries.push( text.indexOf( sentences[ i ] ) );
+			for (let i = 0; i < sentences.length; i++) {
+				if (sentences[i].trim().length) {
+					boundaries.push(text.indexOf(sentences[i]));
 				}
 			}
 			return boundaries;
