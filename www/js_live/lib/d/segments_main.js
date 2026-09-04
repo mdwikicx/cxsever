@@ -1,7 +1,7 @@
 
 import Parser from './lib/lineardoc/Parser';
 import MwContextualizer from './lib/lineardoc/MwContextualizer';
-import CXSegmenter from './lib/CXSegmenter';
+import CXSegmenter from './segmentation/CXSegmenter';
 
 const removableSections = {
     "classes": [
