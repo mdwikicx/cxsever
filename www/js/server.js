@@ -1,7 +1,7 @@
 var express = require("express");
 var cors = require('cors');
 var bodyParser = require('body-parser');
-var u = require('./lib/d/u.js');
+var segments_main = require('./lib/d/segments_main.js');
 var pa = require('./lib/d/pa.js');
 
 var app = express();
@@ -17,7 +17,7 @@ app.get("/page/:title", function (req, res) {
 	const title = req.params.title;
 
 	pa.get_text_new(title, 'mdwiki.org', function (text) {
-		const result = u.tet(text);
+		const result = segments_main.HtmltoSegments(text);
 		res.send({
 			title: title,
 			result: result
@@ -73,7 +73,7 @@ app.post(["/HtmltoSegments", "/textp"], (req, res) => {
 		return;
 	}
 	try {
-		const processedText = u.tet(sourceHtml);
+		const processedText = segments_main.HtmltoSegments(sourceHtml);
 		res.send({ result: processedText });
 	} catch (error) {
 		console.error(error);

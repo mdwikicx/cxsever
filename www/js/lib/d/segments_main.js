@@ -1,6 +1,7 @@
 'use strict';
 
-const LinearDoc = require('../lineardoc')
+const Parser = require('../lineardoc/Parser')
+const MwContextualizer = require('../lineardoc/MwContextualizer')
 const CXSegmenter = require('../segmentation/CXSegmenter')
 
 const removableSections = {
@@ -49,9 +50,15 @@ const removableSections = {
     ]
 };
 
-function tet(source_HTML) {
+/**
+ * Converts HTML source into segmented HTML using a specific parser, contextualizer, and segmenter.
+ *
+ * @param {string} source_HTML - The source HTML string to be processed and segmented.
+ * @returns {string} The resulting segmented HTML string.
+ */
+function HtmltoSegments(source_HTML) {
 
-    const parser = new LinearDoc.Parser(new LinearDoc.MwContextualizer(
+    const parser = new Parser(new MwContextualizer(
         { removableSections: removableSections }
     ), {
         wrapSections: true
@@ -70,5 +77,5 @@ function tet(source_HTML) {
 }
 
 module.exports = {
-    tet
+    HtmltoSegments
 };
