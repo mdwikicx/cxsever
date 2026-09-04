@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @external Doc
  */
@@ -482,7 +484,7 @@ function isIgnorableBlock(sectionDoc) {
 	return ignorable;
 }
 
-export default {
+module.exports = {
 	addCommonTag,
 	cloneOpenTag,
 	dumpTags,

@@ -156,4 +156,4 @@ class MwContextualizer extends Contextualizer {
 	}
 }
 
-export default MwContextualizer;
+module.exports = MwContextualizer;

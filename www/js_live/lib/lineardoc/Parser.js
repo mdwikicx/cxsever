@@ -179,4 +179,4 @@ class Parser extends sax.SAXParser {
 	}
 }
 
-export default Parser;
+module.exports = Parser;

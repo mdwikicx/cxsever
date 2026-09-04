@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Contextualizer for HTML - tracks the segmentation context of the currently open node
  */
@@ -71,4 +73,4 @@ class Contextualizer {
 
 }
 
-export default Contextualizer;
+module.exports = Contextualizer;

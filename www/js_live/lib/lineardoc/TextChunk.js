@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @external Doc
  */
@@ -23,5 +25,4 @@ class TextChunk {
 		this.inlineContent = inlineContent;
 	}
 }
-
-export default TextChunk;
+module.exports = TextChunk;

@@ -1,3 +1,5 @@
+'use strict';
+
 import TextChunk from './TextChunk.js';
 import { addCommonTag, dumpTags, esc, getChunkBoundaryGroups, getCloseTagHtml, getOpenTagHtml, isReference, isTransclusion, isTransclusionFragment, setLinkIdsInPlace } from './Utils.js';
 import { getProp } from './../util.js';
@@ -751,4 +753,4 @@ class TextBlock {
 	}
 }
 
-export default TextBlock;
+module.exports = TextBlock;

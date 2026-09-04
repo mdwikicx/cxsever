@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @external TextBlock
  */
@@ -814,4 +816,4 @@ class Doc {
 	}
 }
 
-export default Doc;
+module.exports = Doc;

@@ -22,6 +22,6 @@ function getProp(path, obj) {
 	);
 }
 
-export default {
+module.exports = {
 	getProp
 };

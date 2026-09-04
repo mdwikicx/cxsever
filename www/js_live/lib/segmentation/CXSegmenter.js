@@ -33,4 +33,4 @@ class CXSegmenter {
 	}
 }
 
-export default CXSegmenter;
+module.exports = CXSegmenter;

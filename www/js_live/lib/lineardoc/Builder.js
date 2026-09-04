@@ -1,3 +1,5 @@
+'use strict';
+
 import Doc from './Doc.js';
 import { isExternalLink, isReference, isTransclusion } from './Utils.js';
 import TextBlock from './TextBlock.js';
@@ -187,4 +189,4 @@ class Builder {
 
 }
 
-export default Builder;
+module.exports = Builder;

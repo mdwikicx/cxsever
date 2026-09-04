@@ -1,7 +1,8 @@
+'use strict';
 
-import Parser from './lib/lineardoc/Parser';
-import MwContextualizer from './lib/lineardoc/MwContextualizer';
-import CXSegmenter from './segmentation/CXSegmenter';
+const Parser = require('../lineardoc/Parser')
+const MwContextualizer = require('../lineardoc/MwContextualizer')
+const CXSegmenter = require('../segmentation/CXSegmenter')
 
 const removableSections = {
     "classes": [
@@ -75,6 +76,6 @@ function HtmltoSegments(source_HTML) {
     return result;
 }
 
-export default {
-    HtmltoSegments: HtmltoSegments
+module.exports = {
+    HtmltoSegments
 };
