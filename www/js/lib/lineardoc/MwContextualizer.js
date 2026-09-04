@@ -18,7 +18,7 @@ class MwContextualizer extends Contextualizer {
 	 * @param {Object} config
 	 * @param {Object} config.removableSections containing array of classes and rdfa values.
 	 *  Tags matching these classes or rdfa values will be marked as removable.
-	 *  See config/MWPageLoader.yaml
+	 *  See config in removableSections
 	 */
 	constructor( config ) {
 		super( config );

@@ -1,7 +1,6 @@
 'use strict';
 
 module.exports = {
-	// cryptox: require( './cryptox' ),
 	Utils: require( './Utils' ),
 	Doc: require( './Doc' ),
 	TextBlock: require( './TextBlock' ),

@@ -1,7 +1,2 @@
-/www/new_js
-www/js.zip
-www/js/pos/Hirayama_disease.html
-www/js/pos/test.html
-www/js/nofix.html
+*.zip
 **/node_modules/**
-/www/js1

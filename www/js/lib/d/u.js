@@ -3,11 +3,6 @@
 const LinearDoc = require('../lineardoc')
 const CXSegmenter = require('../segmentation/CXSegmenter')
 
-// const fs = require('fs')
-// const yaml = require('js-yaml')
-// const pageloaderConfig = yaml.load(fs.readFileSync(__dirname + '/MWPageLoader.yaml'));
-// const removableSections_old = pageloaderConfig.removableSections;
-
 const removableSections = {
     "classes": [
         "ambox",
