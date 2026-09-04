@@ -38,7 +38,6 @@ const blockTags = [
 /**
  * Parser to read an HTML stream into a Doc
  *
- * @class
  */
 class Parser extends SAXParser {
 	/**

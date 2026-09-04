@@ -7,7 +7,6 @@ const cxutil = require('./util');
 /**
  * A block of annotated inline text
  *
- * @class
  */
 class TextBlock {
 	/**
@@ -50,7 +49,6 @@ class TextBlock {
 	/**
 	 * Get the (last) text chunk at a given char offset
 	 *
-	 * @method
 	 * @param {number} charOffset The char offset of the TextChunk
 	 * @return {TextChunk} The text chunk
 	 */
@@ -94,7 +92,6 @@ class TextBlock {
 	/**
 	 * Create a new TextBlock, applying our annotations to a translation
 	 *
-	 * @method
 	 * @param {string} targetText Translated plain text
 	 * @param {Object[]} rangeMappings Array of source-target range index mappings
 	 * @return {TextBlock} Translated textblock with tags applied
@@ -339,7 +336,6 @@ class TextBlock {
 	/**
 	 * Segment the text block into sentences
 	 *
-	 * @method
 	 * @param {Function} getBoundaries Function taking plaintext, returning offset array
 	 * @param {Function} getNextId Function taking 'segment'|'link', returning next ID
 	 * @return {TextBlock} Segmented version, with added span tags
@@ -483,7 +479,6 @@ class TextBlock {
 	/**
 	 * Dump an XML Array version of the linear representation, for debugging
 	 *
-	 * @method
 	 * @param {string} pad Whitespace to indent XML elements
 	 * @return {string[]} Array that will concatenate to an XML string representation
 	 */

@@ -8,7 +8,6 @@ const TextChunk = require('./TextChunk');
 /**
  * A document builder
  *
- * @class
  */
 class Builder {
 	/**
@@ -147,7 +146,6 @@ class Builder {
 	/**
 	 * Add content that doesn't need linearizing, to appear inline
 	 *
-	 * @method
 	 * @param {Object} content Sub-document or empty SAX tag
 	 * @param {boolean} canSegment
 	 */

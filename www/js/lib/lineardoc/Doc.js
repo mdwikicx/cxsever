@@ -25,7 +25,6 @@ const crypto = require('crypto');
  *
  * N.B. 2 can change semantics, e.g. identical adjacent links != single link
  *
- * @class
  */
 class Doc {
 	/**
@@ -40,7 +39,6 @@ class Doc {
 	/**
 	 * Clone the Doc, modifying as we go
 	 *
-	 * @method
 	 * @param {Function} callback The function to modify a node
 	 * @return {Doc} clone with modifications
 	 */
@@ -57,7 +55,6 @@ class Doc {
 	/**
 	 * Add an item to the document
 	 *
-	 * @method
 	 * @param {string} type Type of item: open|close|blockspace|textblock
 	 * @param {Object|string|TextBlock} item Open/close tag, space or text block
 	 * @return {Object}
@@ -106,7 +103,6 @@ class Doc {
 	/**
 	 * Segment the document into sentences
 	 *
-	 * @method
 	 * @param {Function} getBoundaries Function taking plaintext, returning offset array
 	 * @return {Doc} Segmented version of document TODO: warning: *shallow copied*.
 	 */
@@ -194,7 +190,6 @@ class Doc {
 	/**
 	 * Dump an XML version of the linear representation, for debugging
 	 *
-	 * @method
 	 * @return {string} XML version of the linear representation
 	 */
 	dumpXml() {
@@ -204,7 +199,6 @@ class Doc {
 	/**
 	 * Dump the document in HTML format
 	 *
-	 * @method
 	 * @return {string} HTML document
 	 */
 	getHtml() {
@@ -248,7 +242,6 @@ class Doc {
 	 * Wrap the content into sections
 	 * See doc/SectionWrap.md for detailed documentaion.
 	 *
-	 * @method
 	 * @return {string} HTML document
 	 */
 	wrapSections() {
@@ -388,7 +381,6 @@ class Doc {
 	/**
 	 * Dump an XML Array version of the linear representation, for debugging
 	 *
-	 * @method
 	 * @param {string} pad
 	 * @return {string[]} Array that will concatenate to an XML string representation
 	 */
@@ -437,7 +429,6 @@ class Doc {
 	/**
 	 * Extract the text segments from the document
 	 *
-	 * @method
 	 * @return {string[]} balanced html fragments, one per segment
 	 */
 	getSegments() {
@@ -725,7 +716,6 @@ class Doc {
 	/**
 	 * Recursively adapt all nodes in the document.
 	 *
-	 * @method
 	 * @param {Function} getAdapter Function taking a tag, returning adapted output
 	 * @return {Doc} Adapted version of document TODO: warning: *shallow copied*.
 	 */
