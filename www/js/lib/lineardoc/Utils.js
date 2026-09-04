@@ -9,7 +9,7 @@
  */
 
 const TextChunk = require('./TextChunk');
-const cxutil = require('./util');
+const cxutil = require('./../util');
 
 /**
  * Find all matches of regex in text, calling callback with each match object
@@ -406,6 +406,29 @@ function setLinkIdsInPlace(textChunks, getNextId) {
 }
 
 /**
+ * Check if a textblock has any text that should be machine translated, i.e.
+ * non-whitespace text that is not part of a transclusion. A textblock can begin
+ * with an inline transclusion (for example the {{Nihongo}} template) and still
+ * carry translatable prose around it, so the mere presence of a transclusion
+ * does not make the whole block ignorable.
+ *
+ * @param {TextBlock} textBlock
+ * @return {boolean}
+ */
+function hasTranslatableText(textBlock) {
+	return textBlock.textChunks.some((chunk) => {
+		if (!chunk.text || !chunk.text.match(/[^\s]/)) {
+			return false;
+		}
+		// Text belonging to a transclusion is either inside a non-translatable
+		// tag or carries the transclusion's `about` grouping attribute.
+		return !chunk.tags.some(
+			(tag) => isNonTranslatable(tag) || cxutil.getProp(['attributes', 'about'], tag)
+		);
+	});
+}
+
+/**
  * Check if the passed document is a section containing block level template or reference list
  * so that we can ignore from passing to MT engines
  *
@@ -442,6 +465,10 @@ function isIgnorableBlock(sectionDoc) {
 
 		// Also check for textblocks
 		if (!firstBlockTemplate && item.type === 'textblock') {
+			if (hasTranslatableText(item.item)) {
+				// The block carries prose outside any transclusion.
+				return false;
+			}
 			const rootItem = item.item.getRootItem();
 			if (rootItem && isNonTranslatable(rootItem)) {
 				firstBlockTemplate = rootItem;

@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @external Application
  * @external Request

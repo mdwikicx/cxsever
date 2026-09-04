@@ -9,5 +9,5 @@ module.exports = {
 	Parser: require('./Parser'),
 	Contextualizer: require('./Contextualizer'),
 	MwContextualizer: require('./MwContextualizer'),
-	util: require('./util')
+	util: require('./../util')
 };

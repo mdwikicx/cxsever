@@ -5,7 +5,7 @@
  */
 
 const Utils = require('./Utils');
-const cxutil = require('./util');
+const cxutil = require('./../util');
 const crypto = require('crypto');
 
 /**
@@ -112,6 +112,10 @@ class Doc {
 			sectionNumber = 0;
 
 		// TODO: return different counters depending on type
+		/**
+		 * @param {string} type
+		 * @param {string} tagName
+		 */
 		function getNextId(type, tagName) {
 			if (tagName === 'section') {
 				return String(`cxSourceSection${nextSectionId++}`);
@@ -270,16 +274,26 @@ class Doc {
 			return id || tag.name;
 		}
 
+		/**
+		 * @param {Doc} doc
+		 */
 		function openSection(doc) {
 			doc.addItem('open', { name: 'section', attributes: { rel: 'cx:Section' } });
 		}
 
+		/**
+		 * @param {Doc} doc
+		 */
 		function closeSection(doc) {
 			doc.addItem('close', { name: 'section' });
 			prevSection = currSection;
 			currSection = null;
 		}
 
+		/**
+		 * @param {{ type: any; name?: any; item?: any; }} item
+		 * @param {Doc} doc
+		 */
 		function insertToPrevSection(item, doc) {
 			if (newDoc.getCurrentItem().item.name !== 'section') {
 				throw new Error(`Sectionwrap: Attempting to remove a non-section tag: ${item.name}`);
@@ -343,11 +357,14 @@ class Doc {
 
 				if (!tagForId && !currSection) {
 					// Textblock with no tag identifier. Add it to the previous section
-					insertToPrevSection(item, newDoc);
-					continue;
+					if (prevSection && newDoc.getCurrentItem().item.name === 'section') {
+						insertToPrevSection(item, newDoc);
+						continue;
+					}
+					// No previous section to attach to; fall through to open a new one
 				}
 
-				const isConnected = tagForId && prevSection === getTagId(tagForId);
+				const isConnected = tagForId && !currSection && prevSection === getTagId(tagForId);
 
 				if (isConnected) {
 					// This tag is connected to previous section. Can be a template fragment.
@@ -659,6 +676,9 @@ class Doc {
 			}
 
 			const textblock = tag;
+			/**
+			 * @type {number[]}
+			 */
 			const expandedIds = [];
 			for (let j = 0, len = textblock.textChunks.length; j < len; j++) {
 				const chunk = textblock.textChunks[j];
@@ -775,6 +795,24 @@ class Doc {
 		}
 
 		return newDoc;
+	}
+
+	/**
+	 * Reposition reference markers relative to sentence punctuation across the
+	 * whole document, according to the target language convention.
+	 *
+	 * @param {Object} options
+	 * @param {string} options.policy 'before' or 'after'
+	 * @param {string[]} options.punctuation Punctuation marks to reposition around
+	 * @return {Doc} This document, with references repositioned
+	 */
+	adaptReferencePunctuation(options) {
+		for (let i = 0, len = this.items.length; i < len; i++) {
+			if (this.items[i].type === 'textblock') {
+				this.items[i].item = this.items[i].item.adaptReferencePunctuation(options);
+			}
+		}
+		return this;
 	}
 }
 
