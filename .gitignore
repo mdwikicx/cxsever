@@ -4,3 +4,4 @@ www/js/pos/Hirayama_disease.html
 www/js/pos/test.html
 www/js/nofix.html
 **/node_modules/**
+/www/js1

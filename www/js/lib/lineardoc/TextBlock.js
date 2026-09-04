@@ -2,7 +2,7 @@
 
 const TextChunk = require( './TextChunk.js' );
 const Utils = require( './Utils.js' );
-const cxUtils = require( './util' );
+const cxutil = require( './util' );
 
 /**
  * A block of annotated inline text
@@ -440,7 +440,7 @@ class TextBlock {
 			const tagPromises = [],
 				tags = chunk.tags;
 			tags.forEach( ( tag ) => {
-				const dataCX = cxUtils.getProp( [ 'attributes', 'data-cx' ], tag );
+				const dataCX = cxutil.getProp( [ 'attributes', 'data-cx' ], tag );
 				if ( dataCX && Object.keys( JSON.parse( dataCX ) ).length ) {
 					// Already adapted
 					return;

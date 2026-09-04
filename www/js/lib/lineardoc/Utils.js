@@ -66,7 +66,7 @@ function getOpenTagHtml( tag ) {
 		attributes.push( attr );
 	}
 	// by ibrahem qasim
-	attributes.sort();
+	// attributes.sort();
 	for ( let i = 0, len = attributes.length; i < len; i++ ) {
 		const attr = attributes[ i ];
 		html.push( ' ' + esc( attr ) + '="' + escAttr( String( tag.attributes[ attr ] ) ) + '"' );
@@ -283,7 +283,7 @@ function getChunkBoundaryGroups( boundaries, chunks, getLength ) {
 	// Get boundaries in order, disregarding the start of the first chunk
 	boundaries = boundaries.slice();
 	// by ibrahem qasim
-	boundaries.sort( ( a, b ) => a - b );
+	// boundaries.sort( ( a, b ) => a - b );
 	while ( boundaries[ boundaryPtr ] === 0 ) {
 		boundaryPtr++;
 	}
