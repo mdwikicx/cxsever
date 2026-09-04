@@ -16,10 +16,10 @@
  * @return {Object|string|number|null}
  */
 
-function getProp( path, obj ) {
+function getProp(path, obj) {
 	return path.reduce(
-		( accumulator, currentValue ) => ( accumulator && accumulator[ currentValue ] ) ?
-			accumulator[ currentValue ] :
+		(accumulator, currentValue) => (accumulator && accumulator[currentValue]) ?
+			accumulator[currentValue] :
 			null,
 		obj
 	);

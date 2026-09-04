@@ -20,7 +20,7 @@ class TextChunk {
 	 * @param {Object[]} tags array of SAX open tag objects, for the applicable tags
 	 * @param {Doc|Object} [inlineContent] tag or sub-doc
 	 */
-	constructor( text, tags, inlineContent ) {
+	constructor(text, tags, inlineContent) {
 		this.text = text;
 		this.tags = tags;
 		this.inlineContent = inlineContent;
