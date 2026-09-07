@@ -77,5 +77,5 @@ function HtmltoSegments(source_HTML) {
 }
 
 module.exports = {
-    HtmltoSegments
+    HtmltoSegments: HtmltoSegments
 };
