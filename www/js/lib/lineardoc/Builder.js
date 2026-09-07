@@ -15,21 +15,36 @@ class Builder {
 	 * @param {Object} [wrapperTag] tag that wraps document (if there is a parent)
 	 */
 	constructor(parent, wrapperTag) {
+		/**
+		 * @type {any[]}
+		 */
 		this.blockTags = [];
 		// Stack of annotation tags
+		/**
+		 * @type {Object[]}
+		 */
 		this.inlineAnnotationTags = [];
 		// The height of the annotation tags that have been used, minus one
 		this.inlineAnnotationTagsUsed = 0;
 		this.doc = new Doc(wrapperTag || null);
+		/**
+		 * @type {string | { text: any; }[]}
+		 */
 		this.textChunks = [];
 		this.isBlockSegmentable = true;
 		this.parent = parent || null;
 	}
 
+	/**
+	 * @param {Object} wrapperTag
+	 */
 	createChildBuilder(wrapperTag) {
 		return new Builder(this, wrapperTag);
 	}
 
+	/**
+	 * @param {{ name: string; attributes: { rel: string; }; }} tag
+	 */
 	pushBlockTag(tag) {
 		this.finishTextBlock();
 		this.blockTags.push(tag);
@@ -42,14 +57,23 @@ class Builder {
 		this.doc.addItem('open', tag);
 	}
 
+	/**
+	 * @param {{ name: string; attributes: { [x: string]: any; }; }} tag
+	 */
 	isSection(tag) {
 		return tag.name === 'section' && tag.attributes['data-mw-section-id'];
 	}
 
+	/**
+	 * @param {any} tag
+	 */
 	isIgnoredTag(tag) {
 		return this.isSection(tag) || this.isCategory(tag);
 	}
 
+	/**
+	 * @param {Object} tag
+	 */
 	isCategory(tag) {
 		return tag.name === 'link' && tag.attributes.rel &&
 			// We add the spaces before and after to ensure matching on the "word" mw:PageProp/Category
@@ -59,6 +83,9 @@ class Builder {
 			(' ' + tag.attributes.rel + ' ').includes(' mw:PageProp/Category ') && !tag.attributes.about;
 	}
 
+	/**
+	 * @param {string} tagName
+	 */
 	popBlockTag(tagName) {
 		const tag = this.blockTags.pop();
 		if (!tag || tag.name !== tagName) {
@@ -75,10 +102,16 @@ class Builder {
 		return tag;
 	}
 
+	/**
+	 * @param {any} tag
+	 */
 	pushInlineAnnotationTag(tag) {
 		this.inlineAnnotationTags.push(tag);
 	}
 
+	/**
+	 * @param {string} tagName
+	 */
 	popInlineAnnotationTag(tagName) {
 		let i;
 		const tag = this.inlineAnnotationTags.pop();
@@ -135,6 +168,10 @@ class Builder {
 		return;
 	}
 
+	/**
+	 * @param {string} text
+	 * @param {boolean} canSegment
+	 */
 	addTextChunk(text, canSegment) {
 		this.textChunks.push(new TextChunk(text, this.inlineAnnotationTags.slice()));
 		this.inlineAnnotationTagsUsed = this.inlineAnnotationTags.length;

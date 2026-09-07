@@ -31,8 +31,14 @@ class Doc {
 	 * @param {string} wrapperTag open/close tags
 	 */
 	constructor(wrapperTag = null) {
+		/**
+		 * @type {{ type: string; }[]}
+		 */
 		this.items = [];
 		this.wrapperTag = wrapperTag || null;
+		/**
+		 * @type {any[]}
+		 */
 		this.categories = [];
 	}
 
@@ -249,6 +255,10 @@ class Doc {
 	 */
 	wrapSections() {
 		const newDoc = new Doc();
+		/**
+		 * @type {string}
+		 * @type {string}
+		 */
 		let inBody = false,
 			prevSection = null,
 			currSection = null;
@@ -487,7 +497,7 @@ class Doc {
 		let nonTranslatableContext = false;
 
 		// Check if there are attributes other than id to save in attrDump
-		const hasAttributesToSave = (obj) => {
+		const hasAttributesToSave = (/** @type {string} */ obj) => {
 			const keys = obj.attributes && Object.keys(obj.attributes);
 			if (!keys || keys.length === 0) {
 				return false;
@@ -629,7 +639,7 @@ class Doc {
 		const expandedDoc = new Doc(this.wrapperTag);
 		let id = 0;
 
-		const hasAttributes = (obj) => obj.attributes && Object.keys(obj.attributes).length;
+		const hasAttributes = (/** @type {string} */ obj) => obj.attributes && Object.keys(obj.attributes).length;
 		if (this.wrapperTag && hasAttributes(this.wrapperTag)) {
 			id = this.wrapperTag.attributes.id;
 			if (extractedData[id]) {
